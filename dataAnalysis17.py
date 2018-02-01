@@ -21,7 +21,7 @@ ax = fig.gca(projection='3d')
 #z = numpy.loadtxt("24in_RealCrack1.txt", delimiter=" ")
 #z = numpy.loadtxt("frame4190.txt", delimiter=" ")
 
-z = numpy.loadtxt("d_org130.txt", delimiter="\t"
+z = numpy.loadtxt("d_org130.txt", delimiter="\t")
 #above line returns an ndarray type of data
 
 # to remove the edges
