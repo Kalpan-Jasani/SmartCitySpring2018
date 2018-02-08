@@ -9,9 +9,6 @@ import random
 import math
 import time 
 
-from threshold import threshold
-from severity import severity
-#from setFigure import setFigure
 
 #start_time = time.time()
 
@@ -25,6 +22,7 @@ ax = fig.gca(projection='3d')
 #z = numpy.loadtxt("frame4190.txt", delimiter=" ")
 
 z = numpy.loadtxt("d_org130.txt", delimiter="\t")
+#above line returns an ndarray type of data
 
 # to remove the edges
 #z = z[7:-7, 7:-7]
@@ -76,8 +74,6 @@ for width in range(maxwidth):
 # get the inverse of inliers
 #outliers = inliers == False
 
-#(X,Y,z,B) = setFigure
-
 # prepare the B dataset for trial 2
 point_list = []
 bbox = numpy.array([float('Inf'),-float('Inf'),float('Inf'),-float('Inf'),float('Inf'),-float('Inf')])
@@ -101,21 +97,52 @@ bbox_corners = numpy.array([
     [bbox[1],bbox[3], bbox[4]],
     [bbox[1],bbox[2], bbox[4]],
     [bbox[1],bbox[2], bbox[5]],
-    [bbox[1],bbox[3], bbox[5]]]);
+    [bbox[1],bbox[3], bbox[5]]])
 
-bbox_center = numpy.array([(bbox[0]+bbox[1])/2, (bbox[2]+bbox[3])/2, (bbox[4]+bbox[5])/2]);
+bbox_center = numpy.array([(bbox[0]+bbox[1])/2, (bbox[2]+bbox[3])/2, (bbox[4]+bbox[5])/2])
 
 #run ransac on dataset B (2nd trial)
 #code taken from https://github.com/minghuam/point-visualizer/blob/master/point_visualizer.py
 #http://www.cse.yorku.ca/~kosta/CompVis_Notes/ransac.pdf
 # tolerance for distance, e.g. 0.0027m for kinect
-
 TOLERANCE = 0.78 #5
 # ratio of inliers
 THRESHOLD = 0.05
 N_ITERATIONS = 1000
-# Finds least squares solution coeffiecients for ax+by+cz=1
-(a,b,c) = threshold(THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox)
+iterations = 0
+solved = 0
+while iterations < N_ITERATIONS and solved == 0:
+    iterations += 1
+    max_error = -float('inf')
+    max_index = -1
+    # randomly pick three non-colinear points
+    CP = numpy.array([0,0,0])
+    while CP[0] == 0 and CP[1] == 0 and CP[2] == 0:
+        [A,B,C] = points[random.sample(range(len(points)), 3)]
+        # make sure they are non-collinear
+        CP = numpy.cross(A-B, B-C)
+    # calculate plane coefficients
+    abc = numpy.dot(numpy.linalg.inv(numpy.array([A,B,C])), numpy.ones([3,1]))
+    # get distances from the plane
+    d = math.sqrt(abc[0]*abc[0]+abc[1]*abc[1]+abc[2]*abc[2])
+    dist = abs((numpy.dot(points, abc) - 1)/d)
+    #print max(dist),min(dist)
+    ind = numpy.where(dist < TOLERANCE)[0]
+    ratio = float(len(ind))/len(points)
+    if ratio > THRESHOLD:
+    	# satisfied, now fit model with the inliers
+        # least squares reference plane: ax+by+cz=1
+        inliers = numpy.take(points, ind, 0)
+        print('\niterations: {0}, ratio: {1}, {2}/{3}'.format(iterations, ratio,len(points),len(inliers)))
+        [a,b,c] = numpy.dot(numpy.linalg.pinv(inliers), numpy.ones([len(inliers), 1]))
+        plane_pts = numpy.array([
+           	[bbox[0], bbox[2], (1-a*bbox[0]-b*bbox[2])/c],
+           	[bbox[0], bbox[3], (1-a*bbox[0]-b*bbox[3])/c],
+           	[bbox[1], bbox[3], (1-a*bbox[1]-b*bbox[3])/c],
+           	[bbox[1], bbox[2], (1-a*bbox[1]-b*bbox[2])/c]])
+        print('Least squares solution coeffiecients for ax+by+cz=1')
+        print (a,b,c)
+        solved = 1
 
 # plot ransac
 #fig = pyplot.figure()
@@ -164,7 +191,6 @@ pyplot.xlabel('X pixels')
 pyplot.ylabel('Y pixels')
 ax.set_zlabel('Z: Depth values(mm)')
 fig.savefig("dorg26plots")
-#fig.savefig("dorg26plots")
 pyplot.show()
 # trial 2 because 5mm seems to still have a lot of points above the plane
 # this time set to 2mm
@@ -266,7 +292,6 @@ avgDiameter = (widthdiameter+lengthdiameter)/2
 
 #if else statements for severity level using @avgDiameter and @deepest
 deepest = abs(deepest)
-'''
 if deepest <= 25: 
     if avgDiameter <= 200:
         print("L")
@@ -290,6 +315,5 @@ elif deepest > 50:
         print("H")
 elif deepest < 13 and avgDiameter < 100:
     print("Not a pothole")
-'''
-severity(deepest, avgDiameter)
+
 #print(time.time() - start_time)
