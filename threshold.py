@@ -9,7 +9,7 @@ import numpy
 import random
 import math
 
-def threshold (THRESHOLD, TOLERANCE, N_ITERATIONS):
+def threshold (THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox):
     #run ransac on dataset B (2nd trial)
     #code taken from https://github.com/minghuam/point-visualizer/blob/master/point_visualizer.py
     #http://www.cse.yorku.ca/~kosta/CompVis_Notes/ransac.pdf
@@ -17,8 +17,6 @@ def threshold (THRESHOLD, TOLERANCE, N_ITERATIONS):
     #TOLERANCE = 0.78 #5 #removing hard coding
     # ratio of inliers
     #THRESHOLD = 0.05 #removing hard coding
-    global points
-    global bbox
     N_ITERATIONS = 1000
     iterations = 0
     solved = 0
