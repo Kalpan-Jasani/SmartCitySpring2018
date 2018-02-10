@@ -68,9 +68,4 @@ def setFigure ():
     		B[row, 2] = z[width, length]
     		row = row + 1
     
-    # run ransac on dataset B (1st trial)
-    #model_robust, inliers = ransac(B, LineModelND, min_samples=3, residual_threshold=1, max_trials=1000)
-    # get the inverse of inliers
-    #outliers = inliers == False
-    
     return(X,x,Y,y,z,B);

@@ -9,7 +9,7 @@ import numpy
 import random
 import math
 
-def threshold (THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox):
+def leastSqCoeff (THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox):
     #run ransac on dataset B (2nd trial)
     #code taken from https://github.com/minghuam/point-visualizer/blob/master/point_visualizer.py
     #http://www.cse.yorku.ca/~kosta/CompVis_Notes/ransac.pdf

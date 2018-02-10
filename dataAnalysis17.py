@@ -9,14 +9,65 @@ import random
 import math
 import time 
 
-from threshold import threshold
+from leastSqCoeff import leastSqCoeff
 from severity import severity
-from setFigure import setFigure
+#from setFigure import setFigure
+from plotFigure import plotFigure
 
-#this function sets up the x and y axes to print the graphics on
-(X,x,Y,y,z,B) = setFigure()
 
+# generate x, y and z coordinates
+#X = numpy.arange(0, 620) #512
+#Y = numpy.arange(0, 460) #424
+#z = numpy.loadtxt("24in_RealCrack1.txt", delimiter=" ")
+#z = numpy.loadtxt("frame4190.txt", delimiter=" ")
+
+z = numpy.loadtxt("d_org130.txt", delimiter="\t")
+
+# to remove the edges
+#z = z[7:-7, 7:-7]
+#z = z[:,420:-115]
+
+# No hardcoding
+x,y = z.shape
+X = numpy.arange(0, y)
+Y = numpy.arange(0, x)
+
+# to subtract height from ground
+#z = z - 609.6
+#z = z - 0.5334
+#z = z - 0.6096
+#z = z * 100
+#z = z - 61
+#z = z - 62
+#z= z - 12
+#plot 3d graph x, y and depth data
+#z[z<-30]=0
+X, Y = numpy.meshgrid(X, Y)
+
+fig = plotFigure(X,Y,z,z,True)
+fig.savefig("dorg130") #save the image
+
+rows = x * y
+columns = 3
+maxlength = y
+#maxlength = 620
+maxwidth = x
+#maxwidth = 460
+B = numpy.empty((rows, columns))
+row = 0
+for width in range(maxwidth):
+    for length in range(maxlength):
+    		B[row, 0] = width
+    		B[row, 1] = length
+    		B[row, 2] = z[width, length]
+    		row = row + 1
 # prepare the B dataset for trial 2
+             
+# run ransac on dataset B (1st trial)
+#model_robust, inliers = ransac(B, LineModelND, min_samples=3, residual_threshold=1, max_trials=1000)
+# get the inverse of inliers
+#outliers = inliers == False
+            
 point_list = []
 bbox = numpy.array([float('Inf'),-float('Inf'),float('Inf'),-float('Inf'),float('Inf'),-float('Inf')])
 
@@ -43,17 +94,13 @@ bbox_corners = numpy.array([
 
 bbox_center = numpy.array([(bbox[0]+bbox[1])/2, (bbox[2]+bbox[3])/2, (bbox[4]+bbox[5])/2]);
 
-#run ransac on dataset B (2nd trial)
-#code taken from https://github.com/minghuam/point-visualizer/blob/master/point_visualizer.py
-#http://www.cse.yorku.ca/~kosta/CompVis_Notes/ransac.pdf
-# tolerance for distance, e.g. 0.0027m for kinect
-
+#hardcodes the tolerance and threshold 
 TOLERANCE = 0.78 #5
 # ratio of inliers
 THRESHOLD = 0.05
 N_ITERATIONS = 1000
 # Finds least squares solution coeffiecients for ax+by+cz=1
-(a,b,c) = threshold(THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox)
+(a,b,c) = leastSqCoeff(THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox)
 
 # plot ransac
 #fig = pyplot.figure()
@@ -68,15 +115,7 @@ N_ITERATIONS = 1000
 Z = (1 - a*X - b*Y)/c 
 # Linear plane eq trial 2 Z = ax + by + c
 #Z = a*X + b*Y + c 
-fig = pyplot.figure()
-ax = fig.gca(projection='3d')
-ax.plot_surface(X,Y,Z,rstride=1, cstride=1, alpha=0.2)
-surf = ax.plot_surface(X,Y,z, cmap=cm.coolwarm, linewidth = 0, antialiased=False)
-fig.colorbar(surf, shrink=0.5, aspect=5)
-#pyplot.show()
-pyplot.xlabel('X pixels')
-pyplot.ylabel('Y pixels')
-ax.set_zlabel('Z: Depth values(mm)')
+fig = plotFigure(X,Y,Z,z,True)
 fig.savefig("dorg_26planetest")
 
 # Depth image subtracted from fitted plane
@@ -92,16 +131,9 @@ depthdiff[depthdiff > 0] = 0
 #depthdiff[mask] = 0
 
 # Plot test image of both the plane and the subtracted depth data
-fig = pyplot.figure()
-ax = fig.gca(projection='3d')
-surf = ax.plot_surface(X,Y,depthdiff, cmap=cm.coolwarm, linewidth = 0, antialiased=False)
-#ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.2)
-fig.colorbar(surf, shrink=0.5, aspect=5)
-#pyplot.show()
-pyplot.xlabel('X pixels')
-pyplot.ylabel('Y pixels')
-ax.set_zlabel('Z: Depth values(mm)')
+fig = plotFigure(X,Y,Z,depthdiff,False)
 fig.savefig("dorg26plots")
+
 #fig.savefig("dorg26plots")
 pyplot.show()
 # trial 2 because 5mm seems to still have a lot of points above the plane
