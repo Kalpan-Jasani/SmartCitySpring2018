@@ -73,4 +73,4 @@ def setFigure ():
     # get the inverse of inliers
     #outliers = inliers == False
     
-    return(x,y,z,B);
+    return(X,x,Y,y,z,B);

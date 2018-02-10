@@ -11,72 +11,10 @@ import time
 
 from threshold import threshold
 from severity import severity
-#from setFigure import setFigure
+from setFigure import setFigure
 
-#start_time = time.time()
-
-fig = pyplot.figure()
-ax = fig.gca(projection='3d')
-
-# generate x, y and z coordinates
-#X = numpy.arange(0, 620) #512
-#Y = numpy.arange(0, 460) #424
-#z = numpy.loadtxt("24in_RealCrack1.txt", delimiter=" ")
-#z = numpy.loadtxt("frame4190.txt", delimiter=" ")
-
-z = numpy.loadtxt("d_org130.txt", delimiter="\t")
-
-# to remove the edges
-#z = z[7:-7, 7:-7]
-#z = z[:,420:-115]
-
-# No hardcoding
-x,y = z.shape
-X = numpy.arange(0, y)
-Y = numpy.arange(0, x)
-
-# to subtract height from ground
-#z = z - 609.6
-#z = z - 0.5334
-#z = z - 0.6096
-#z = z * 100
-#z = z - 61
-#z = z - 62
-#z= z - 12
-# plot 3d graph x, y and depth data
-#z[z<-30]=0
-X, Y = numpy.meshgrid(X, Y)
-surf = ax.plot_surface(X, Y, z, cmap=cm.coolwarm, linewidth = 0, antialiased=False)
-fig.colorbar(surf, shrink=0.5, aspect=5)
-pyplot.xlabel('X pixels')
-pyplot.ylabel('Y pixels')
-ax.set_zlabel('Z: Depth values(mm)')
-#pyplot.show()
-fig.savefig("dorg130") #save the image
-#numpy.savetxt("testremove.txt", z, delimiter=" ", fmt = '%.4f')
-# combine x, y and z into a 3 column matrix
-#rows = 285200
-rows = x * y
-columns = 3
-maxlength = y
-#maxlength = 620
-maxwidth = x
-#maxwidth = 460
-B = numpy.empty((rows, columns))
-row = 0
-for width in range(maxwidth):
-	for length in range(maxlength):
-		B[row, 0] = width
-		B[row, 1] = length
-		B[row, 2] = z[width, length]
-		row = row + 1
-
-# run ransac on dataset B (1st trial)
-#model_robust, inliers = ransac(B, LineModelND, min_samples=3, residual_threshold=1, max_trials=1000)
-# get the inverse of inliers
-#outliers = inliers == False
-
-#(X,Y,z,B) = setFigure
+#this function sets up the x and y axes to print the graphics on
+(X,x,Y,y,z,B) = setFigure()
 
 # prepare the B dataset for trial 2
 point_list = []
@@ -266,30 +204,6 @@ avgDiameter = (widthdiameter+lengthdiameter)/2
 
 #if else statements for severity level using @avgDiameter and @deepest
 deepest = abs(deepest)
-'''
-if deepest <= 25: 
-    if avgDiameter <= 200:
-        print("L")
-    elif avgDiameter > 200 and avgDiameter <= 450:
-        print("L")
-    elif avgDiameter > 450:
-        print("M")
-elif deepest > 25 and deepest <= 50:
-    if avgDiameter <= 200:
-        print("L")
-    elif avgDiameter > 200 and avgDiameter <= 450:
-        print("M")
-    elif avgDiameter > 450:
-        print("H")
-elif deepest > 50:
-    if avgDiameter <= 200:
-        print("M")
-    elif avgDiameter > 200 and avgDiameter <= 450:
-        print("M")
-    elif avgDiameter > 450:
-        print("H")
-elif deepest < 13 and avgDiameter < 100:
-    print("Not a pothole")
-'''
+#severity function is in another file, it prints L,M,H for low, medium, and high severity
 severity(deepest, avgDiameter)
 #print(time.time() - start_time)
