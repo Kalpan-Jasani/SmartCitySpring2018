@@ -25,10 +25,28 @@ ax = fig.gca(projection='3d')
 #z = numpy.loadtxt("frame4190.txt", delimiter=" ")
 
 z = numpy.loadtxt("d_org130.txt", delimiter="\t")
+print(str(z))
+numrows = len(z)    # 3 rows in your example
+numcols = len(z[0]) # 2 columns in your example
+print(str(numrows))
+print(str(numcols))
+
+
+input("break")
 
 # to remove the edges
-#z = z[7:-7, 7:-7]
+z = z[7:-7, 7:-7]
 #z = z[:,420:-115]
+
+print(str(z))
+numrows = len(z)
+numcols = len(z[0])
+print(str(numrows))
+print(str(numcols))
+
+input("break")
+
+
 
 # No hardcoding
 x,y = z.shape
