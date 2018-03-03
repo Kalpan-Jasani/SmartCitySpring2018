@@ -21,16 +21,18 @@ from plotFigure import plotFigure
 #z = numpy.loadtxt("24in_RealCrack1.txt", delimiter=" ")
 #z = numpy.loadtxt("frame4190.txt", delimiter=" ")
 
-z = numpy.loadtxt("d_org130.txt", delimiter="\t")
+z = numpy.loadtxt("d_org130.txt", delimiter="\t") #load into 2D array
 
 # to remove the edges
-#z = z[7:-7, 7:-7]
+#from row 7 to end - 7 and from column 7 to end - 7
+z = z[7:-7, 7:-7]
 #z = z[:,420:-115]
 
 # No hardcoding
-x,y = z.shape
-X = numpy.arange(0, y)
-Y = numpy.arange(0, x)
+x,y = z.shape  #gives dimensions
+
+X = numpy.arange(y) #gives numbers from 0 to y(stored in X)
+Y = numpy.arange(x) #gives numbers from 0 to x(stored in Y)
 
 # to subtract height from ground
 #z = z - 609.6
@@ -42,25 +44,33 @@ Y = numpy.arange(0, x)
 #z= z - 12
 #plot 3d graph x, y and depth data
 #z[z<-30]=0
-X, Y = numpy.meshgrid(X, Y)
+X, Y = numpy.meshgrid(X, Y) #makes 2D array for plotting DONT WORRY ABOUT X
 
-fig = plotFigure(X,Y,z,z,True)
-fig.savefig("dorg130") #save the image
+# remove next line to show figure 1
+#fig = plotFigure(X,Y,z,z,True) #plot original figure(before adjusting)
+#fig.savefig("dorg130") #save the image
 
-rows = x * y
+
+
+
+#the next few line makes 3D plot (stored in B finally) of the x,y values and their corresponding depth
+rows = x * y #this stores the number of pixels.. each pixel's data is stored in B
 columns = 3
+
 maxlength = y
-#maxlength = 620
 maxwidth = x
-#maxwidth = 460
-B = numpy.empty((rows, columns))
+B = numpy.empty((rows, columns)) #initializes array B with random crap in it of dimensions (rows, columns)
 row = 0
-for width in range(maxwidth):
+for width in range(maxwidth): 
     for length in range(maxlength):
     		B[row, 0] = width
     		B[row, 1] = length
-    		B[row, 2] = z[width, length]
+    		B[row, 2] = z[width, length] #matches each x and y with corresponding depth
     		row = row + 1
+
+
+
+
 # prepare the B dataset for trial 2
              
 # run ransac on dataset B (1st trial)
@@ -68,19 +78,33 @@ for width in range(maxwidth):
 # get the inverse of inliers
 #outliers = inliers == False
             
-point_list = []
+#point_list = []
+# makes 1D array of 6 elements alternating infinity and negative infinity
 bbox = numpy.array([float('Inf'),-float('Inf'),float('Inf'),-float('Inf'),float('Inf'),-float('Inf')])
 
+#clones array B
 points = numpy.array(B)
 
 
+# xyz acquires the different pixels/points 
+
+# find the pixel that is the minimum and the pixel that is the maximum
+
 for xyz in points:
-    bbox[0] = min(bbox[0], xyz[0]) # min x
-    bbox[1] = max(bbox[1], xyz[0]) # max y
-    bbox[2] = min(bbox[2], xyz[1]) # min x
-    bbox[3] = max(bbox[3], xyz[1]) # max y
-    bbox[4] = min(bbox[4], xyz[2]) # min z
-    bbox[5] = max(bbox[5], xyz[2]) # max z
+    #bbox[0] = min(bbox[0], xyz[0]) # min x
+    #bbox[1] = max(bbox[1], xyz[0]) # max x
+    #bbox[2] = min(bbox[2], xyz[1]) # min y
+    #bbox[3] = max(bbox[3], xyz[1]) # max y
+    if min(bbox[4], xyz[2]) == xyz[2]:
+        bbox[4] = xyz[2]  # min z
+        bbox[0] = xyz[0]
+        bbox[2] = xyz[1]
+        
+    if max(bbox[5], xyz[2]) == xyz[2]:
+        bbox[5] = xyz[2]  # min z
+        bbox[1] = xyz[0]
+        bbox[3] = xyz[1]
+    #bbox[5] = max(bbox[5], xyz[2]) # max z
 
 bbox_corners = numpy.array([
     [bbox[0],bbox[2], bbox[4]],
