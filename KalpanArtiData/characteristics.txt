@@ -1,6 +1,0 @@
-Percentage length of pothole = 30
-Percentage breadth of pothole = 30
-Depth of pothole = 780
-Depth of road = 700
-Deflection range in pothole = 5
-Deflection range in road = 5
