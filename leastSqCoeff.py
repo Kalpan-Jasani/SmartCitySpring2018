@@ -10,6 +10,8 @@ import random
 import math
 
 def leastSqCoeff (THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox):
+    #points is a roster or a list of all the points
+    
     #run ransac on dataset B (2nd trial)
     #code taken from https://github.com/minghuam/point-visualizer/blob/master/point_visualizer.py
     #http://www.cse.yorku.ca/~kosta/CompVis_Notes/ransac.pdf
@@ -27,14 +29,22 @@ def leastSqCoeff (THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox):
         # randomly pick three non-colinear points
         CP = numpy.array([0,0,0])
         while CP[0] == 0 and CP[1] == 0 and CP[2] == 0:
+            
+            #A stores x coord, B stores y coord and C stores depth (z coord)
             [A,B,C] = points[random.sample(range(len(points)), 3)]
+            
             # make sure they are non-collinear
             CP = numpy.cross(A-B, B-C)
+            
             # calculate plane coefficients
             abc = numpy.dot(numpy.linalg.inv(numpy.array([A,B,C])), numpy.ones([3,1]))
+            
             # get distances from the plane
             d = math.sqrt(abc[0]*abc[0]+abc[1]*abc[1]+abc[2]*abc[2])
+            
             dist = abs((numpy.dot(points, abc) - 1)/d)
+            print(dist)
+            input("Break")
             #print max(dist),min(dist)
             ind = numpy.where(dist < TOLERANCE)[0]
             ratio = float(len(ind))/len(points)
