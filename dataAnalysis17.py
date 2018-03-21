@@ -179,10 +179,16 @@ pyplot.show()
 #depthdiff[depth > 0] = 0
 #depthdiff[depthdiff > -5] = 0
 
+
+#<<<<<<Need to comment everything below>>>>>>>
+
+
 #Find the max depth in the array 
 deepest = min(depthdiff.flatten())
+
 #divide by deepest - normalized
 test = depthdiff/ deepest # why are the values not 0 to 1?
+
 #show grayscale img
 pyplot.imshow(test)
 pyplot.show()
