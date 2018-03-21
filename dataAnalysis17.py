@@ -106,24 +106,36 @@ for xyz in points:
         bbox[3] = xyz[1]
     #bbox[5] = max(bbox[5], xyz[2]) # max z
 
-bbox_corners = numpy.array([
-    [bbox[0],bbox[2], bbox[4]],
-    [bbox[0],bbox[2], bbox[5]],
-    [bbox[0],bbox[3], bbox[5]],
-    [bbox[0],bbox[3], bbox[4]],
-    [bbox[1],bbox[3], bbox[4]],
-    [bbox[1],bbox[2], bbox[4]],
-    [bbox[1],bbox[2], bbox[5]],
-    [bbox[1],bbox[3], bbox[5]]]);
+#making a cube of the points around the min and max, each of these points are a vertex
+#not sure why, look at later
+#not using bbox_corner anywhere
+#bbox_corners = numpy.array([
+#    [bbox[0],bbox[2], bbox[4]],
+#    [bbox[0],bbox[2], bbox[5]],
+#    [bbox[0],bbox[3], bbox[5]],
+#    [bbox[0],bbox[3], bbox[4]],
+#    [bbox[1],bbox[3], bbox[4]],
+#    [bbox[1],bbox[2], bbox[4]],
+#    [bbox[1],bbox[2], bbox[5]],
+#    [bbox[1],bbox[3], bbox[5]]]);
 
+#finds coordinates of the center in the cube
 bbox_center = numpy.array([(bbox[0]+bbox[1])/2, (bbox[2]+bbox[3])/2, (bbox[4]+bbox[5])/2]);
 
 #hardcodes the tolerance and threshold 
-TOLERANCE = 0.78 #5
+TOLERANCE = 0.78 # standard distance of the "level" of the road. 0.78 metres.
 # ratio of inliers
 THRESHOLD = 0.05
 N_ITERATIONS = 1000
 # Finds least squares solution coeffiecients for ax+by+cz=1
+
+#this code is faulty becaue it picks points randomly from the points array. 
+
+
+# write code where you store all the points not in the pothole.
+# write code that choose, say 1000, points from the set above . IMPORTANT: These points should be chosen RANDOMLY(not the first 1000)
+# give this data instead of "points" in the function leastSqCoeff
+
 (a,b,c) = leastSqCoeff(THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox)
 
 # plot ransac
