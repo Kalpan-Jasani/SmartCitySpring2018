@@ -9,11 +9,11 @@ import random
 import math
 import time 
 
+from leastSqCoeff import leastSqCoeff
+from severity import severity
+#from setFigure import setFigure
+from plotFigure import plotFigure
 
-#start_time = time.time()
-
-fig = pyplot.figure()
-ax = fig.gca(projection='3d')
 
 # generate x, y and z coordinates
 #X = numpy.arange(0, 620) #512
@@ -21,17 +21,18 @@ ax = fig.gca(projection='3d')
 #z = numpy.loadtxt("24in_RealCrack1.txt", delimiter=" ")
 #z = numpy.loadtxt("frame4190.txt", delimiter=" ")
 
-z = numpy.loadtxt("d_org130.txt", delimiter="\t")
-#above line returns an ndarray type of data
+z = numpy.loadtxt("d_org130.txt", delimiter="\t") #load into 2D array
 
 # to remove the edges
-#z = z[7:-7, 7:-7]
+#from row 7 to end - 7 and from column 7 to end - 7
+z = z[7:-7, 7:-7]
 #z = z[:,420:-115]
 
 # No hardcoding
-x,y = z.shape
-X = numpy.arange(0, y)
-Y = numpy.arange(0, x)
+x,y = z.shape  #gives dimensions
+
+X = numpy.arange(y) #gives numbers from 0 to y(stored in X)
+Y = numpy.arange(x) #gives numbers from 0 to x(stored in Y)
 
 # to subtract height from ground
 #z = z - 609.6
@@ -41,108 +42,101 @@ Y = numpy.arange(0, x)
 #z = z - 61
 #z = z - 62
 #z= z - 12
-# plot 3d graph x, y and depth data
+#plot 3d graph x, y and depth data
 #z[z<-30]=0
-X, Y = numpy.meshgrid(X, Y)
-surf = ax.plot_surface(X, Y, z, cmap=cm.coolwarm, linewidth = 0, antialiased=False)
-fig.colorbar(surf, shrink=0.5, aspect=5)
-pyplot.xlabel('X pixels')
-pyplot.ylabel('Y pixels')
-ax.set_zlabel('Z: Depth values(mm)')
-#pyplot.show()
-fig.savefig("dorg130") #save the image
-#numpy.savetxt("testremove.txt", z, delimiter=" ", fmt = '%.4f')
-# combine x, y and z into a 3 column matrix
-#rows = 285200
-rows = x * y
-columns = 3
-maxlength = y
-#maxlength = 620
-maxwidth = x
-#maxwidth = 460
-B = numpy.empty((rows, columns))
-row = 0
-for width in range(maxwidth):
-	for length in range(maxlength):
-		B[row, 0] = width
-		B[row, 1] = length
-		B[row, 2] = z[width, length]
-		row = row + 1
+X, Y = numpy.meshgrid(X, Y) #makes 2D array for plotting DONT WORRY ABOUT X
 
+# remove next line to show figure 1
+#fig = plotFigure(X,Y,z,z,True) #plot original figure(before adjusting)
+#fig.savefig("dorg130") #save the image
+
+
+
+
+#the next few line makes 3D plot (stored in B finally) of the x,y values and their corresponding depth
+rows = x * y #this stores the number of pixels.. each pixel's data is stored in B
+columns = 3
+
+maxlength = y
+maxwidth = x
+B = numpy.empty((rows, columns)) #initializes array B with random crap in it of dimensions (rows, columns)
+row = 0
+for width in range(maxwidth): 
+    for length in range(maxlength):
+    		B[row, 0] = width
+    		B[row, 1] = length
+    		B[row, 2] = z[width, length] #matches each x and y with corresponding depth
+    		row = row + 1
+
+
+
+
+# prepare the B dataset for trial 2
+             
 # run ransac on dataset B (1st trial)
 #model_robust, inliers = ransac(B, LineModelND, min_samples=3, residual_threshold=1, max_trials=1000)
 # get the inverse of inliers
 #outliers = inliers == False
-
-# prepare the B dataset for trial 2
-point_list = []
+            
+#point_list = []
+# makes 1D array of 6 elements alternating infinity and negative infinity
 bbox = numpy.array([float('Inf'),-float('Inf'),float('Inf'),-float('Inf'),float('Inf'),-float('Inf')])
 
+#clones array B
 points = numpy.array(B)
 
 
+# xyz acquires the different pixels/points 
+
+# find the pixel that is the minimum and the pixel that is the maximum
+
 for xyz in points:
-    bbox[0] = min(bbox[0], xyz[0]) # min x
-    bbox[1] = max(bbox[1], xyz[0]) # max y
-    bbox[2] = min(bbox[2], xyz[1]) # min x
-    bbox[3] = max(bbox[3], xyz[1]) # max y
-    bbox[4] = min(bbox[4], xyz[2]) # min z
-    bbox[5] = max(bbox[5], xyz[2]) # max z
+    #bbox[0] = min(bbox[0], xyz[0]) # min x
+    #bbox[1] = max(bbox[1], xyz[0]) # max x
+    #bbox[2] = min(bbox[2], xyz[1]) # min y
+    #bbox[3] = max(bbox[3], xyz[1]) # max y
+    if min(bbox[4], xyz[2]) == xyz[2]:
+        bbox[4] = xyz[2]  # min z
+        bbox[0] = xyz[0]
+        bbox[2] = xyz[1]
+        
+    if max(bbox[5], xyz[2]) == xyz[2]:
+        bbox[5] = xyz[2]  # min z
+        bbox[1] = xyz[0]
+        bbox[3] = xyz[1]
+    #bbox[5] = max(bbox[5], xyz[2]) # max z
 
-bbox_corners = numpy.array([
-    [bbox[0],bbox[2], bbox[4]],
-    [bbox[0],bbox[2], bbox[5]],
-    [bbox[0],bbox[3], bbox[5]],
-    [bbox[0],bbox[3], bbox[4]],
-    [bbox[1],bbox[3], bbox[4]],
-    [bbox[1],bbox[2], bbox[4]],
-    [bbox[1],bbox[2], bbox[5]],
-    [bbox[1],bbox[3], bbox[5]]])
+#making a cube of the points around the min and max, each of these points are a vertex
+#not sure why, look at later
+#not using bbox_corner anywhere
+#bbox_corners = numpy.array([
+#    [bbox[0],bbox[2], bbox[4]],
+#    [bbox[0],bbox[2], bbox[5]],
+#    [bbox[0],bbox[3], bbox[5]],
+#    [bbox[0],bbox[3], bbox[4]],
+#    [bbox[1],bbox[3], bbox[4]],
+#    [bbox[1],bbox[2], bbox[4]],
+#    [bbox[1],bbox[2], bbox[5]],
+#    [bbox[1],bbox[3], bbox[5]]]);
 
-bbox_center = numpy.array([(bbox[0]+bbox[1])/2, (bbox[2]+bbox[3])/2, (bbox[4]+bbox[5])/2])
+#finds coordinates of the center in the cube
+bbox_center = numpy.array([(bbox[0]+bbox[1])/2, (bbox[2]+bbox[3])/2, (bbox[4]+bbox[5])/2]);
 
-#run ransac on dataset B (2nd trial)
-#code taken from https://github.com/minghuam/point-visualizer/blob/master/point_visualizer.py
-#http://www.cse.yorku.ca/~kosta/CompVis_Notes/ransac.pdf
-# tolerance for distance, e.g. 0.0027m for kinect
-TOLERANCE = 0.78 #5
+#hardcodes the tolerance and threshold 
+TOLERANCE = 0.78 # standard distance of the "level" of the road. 0.78 metres.
 # ratio of inliers
 THRESHOLD = 0.05
 N_ITERATIONS = 1000
-iterations = 0
-solved = 0
-while iterations < N_ITERATIONS and solved == 0:
-    iterations += 1
-    max_error = -float('inf')
-    max_index = -1
-    # randomly pick three non-colinear points
-    CP = numpy.array([0,0,0])
-    while CP[0] == 0 and CP[1] == 0 and CP[2] == 0:
-        [A,B,C] = points[random.sample(range(len(points)), 3)]
-        # make sure they are non-collinear
-        CP = numpy.cross(A-B, B-C)
-    # calculate plane coefficients
-    abc = numpy.dot(numpy.linalg.inv(numpy.array([A,B,C])), numpy.ones([3,1]))
-    # get distances from the plane
-    d = math.sqrt(abc[0]*abc[0]+abc[1]*abc[1]+abc[2]*abc[2])
-    dist = abs((numpy.dot(points, abc) - 1)/d)
-    #print max(dist),min(dist)
-    ind = numpy.where(dist < TOLERANCE)[0]
-    ratio = float(len(ind))/len(points)
-    if ratio > THRESHOLD:
-    	# satisfied, now fit model with the inliers
-        # least squares reference plane: ax+by+cz=1
-        inliers = numpy.take(points, ind, 0)
-        print('\niterations: {0}, ratio: {1}, {2}/{3}'.format(iterations, ratio,len(points),len(inliers)))
-        [a,b,c] = numpy.dot(numpy.linalg.pinv(inliers), numpy.ones([len(inliers), 1]))
-        plane_pts = numpy.array([
-           	[bbox[0], bbox[2], (1-a*bbox[0]-b*bbox[2])/c],
-           	[bbox[0], bbox[3], (1-a*bbox[0]-b*bbox[3])/c],
-           	[bbox[1], bbox[3], (1-a*bbox[1]-b*bbox[3])/c],
-           	[bbox[1], bbox[2], (1-a*bbox[1]-b*bbox[2])/c]])
-        print('Least squares solution coeffiecients for ax+by+cz=1')
-        print (a,b,c)
-        solved = 1
+# Finds least squares solution coeffiecients for ax+by+cz=1
+
+#this code is faulty becaue it picks points randomly from the points array. 
+
+
+# write code where you store all the points not in the pothole.
+# write code that choose, say 1000, points from the set above . IMPORTANT: These points should be chosen RANDOMLY(not the first 1000)
+# give this data instead of "points" in the function leastSqCoeff
+
+(a,b,c) = leastSqCoeff(THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox)
 
 # plot ransac
 #fig = pyplot.figure()
@@ -157,15 +151,7 @@ while iterations < N_ITERATIONS and solved == 0:
 Z = (1 - a*X - b*Y)/c 
 # Linear plane eq trial 2 Z = ax + by + c
 #Z = a*X + b*Y + c 
-fig = pyplot.figure()
-ax = fig.gca(projection='3d')
-ax.plot_surface(X,Y,Z,rstride=1, cstride=1, alpha=0.2)
-surf = ax.plot_surface(X,Y,z, cmap=cm.coolwarm, linewidth = 0, antialiased=False)
-fig.colorbar(surf, shrink=0.5, aspect=5)
-#pyplot.show()
-pyplot.xlabel('X pixels')
-pyplot.ylabel('Y pixels')
-ax.set_zlabel('Z: Depth values(mm)')
+fig = plotFigure(X,Y,Z,z,True)
 fig.savefig("dorg_26planetest")
 
 # Depth image subtracted from fitted plane
@@ -181,16 +167,10 @@ depthdiff[depthdiff > 0] = 0
 #depthdiff[mask] = 0
 
 # Plot test image of both the plane and the subtracted depth data
-fig = pyplot.figure()
-ax = fig.gca(projection='3d')
-surf = ax.plot_surface(X,Y,depthdiff, cmap=cm.coolwarm, linewidth = 0, antialiased=False)
-#ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.2)
-fig.colorbar(surf, shrink=0.5, aspect=5)
-#pyplot.show()
-pyplot.xlabel('X pixels')
-pyplot.ylabel('Y pixels')
-ax.set_zlabel('Z: Depth values(mm)')
+fig = plotFigure(X,Y,Z,depthdiff,False)
 fig.savefig("dorg26plots")
+
+#fig.savefig("dorg26plots")
 pyplot.show()
 # trial 2 because 5mm seems to still have a lot of points above the plane
 # this time set to 2mm
@@ -292,28 +272,6 @@ avgDiameter = (widthdiameter+lengthdiameter)/2
 
 #if else statements for severity level using @avgDiameter and @deepest
 deepest = abs(deepest)
-if deepest <= 25: 
-    if avgDiameter <= 200:
-        print("L")
-    elif avgDiameter > 200 and avgDiameter <= 450:
-        print("L")
-    elif avgDiameter > 450:
-        print("M")
-elif deepest > 25 and deepest <= 50:
-    if avgDiameter <= 200:
-        print("L")
-    elif avgDiameter > 200 and avgDiameter <= 450:
-        print("M")
-    elif avgDiameter > 450:
-        print("H")
-elif deepest > 50:
-    if avgDiameter <= 200:
-        print("M")
-    elif avgDiameter > 200 and avgDiameter <= 450:
-        print("M")
-    elif avgDiameter > 450:
-        print("H")
-elif deepest < 13 and avgDiameter < 100:
-    print("Not a pothole")
-
+#severity function is in another file, it prints L,M,H for low, medium, and high severity
+severity(deepest, avgDiameter)
 #print(time.time() - start_time)
