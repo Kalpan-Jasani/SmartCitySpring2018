@@ -15,6 +15,7 @@ from severity import severity
 from plotFigure import plotFigure
 
 
+#something new
 # generate x, y and z coordinates
 #X = numpy.arange(0, 620) #512
 #Y = numpy.arange(0, 460) #424
