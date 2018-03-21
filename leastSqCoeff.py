@@ -43,8 +43,7 @@ def leastSqCoeff (THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox):
             d = math.sqrt(abc[0]*abc[0]+abc[1]*abc[1]+abc[2]*abc[2])
             
             dist = abs((numpy.dot(points, abc) - 1)/d)
-            print(dist)
-            input("Break")
+            
             #print max(dist),min(dist)
             ind = numpy.where(dist < TOLERANCE)[0]
             ratio = float(len(ind))/len(points)

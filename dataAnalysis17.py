@@ -71,7 +71,6 @@ for width in range(maxwidth):
 
 
 
-
 # prepare the B dataset for trial 2
              
 # run ransac on dataset B (1st trial)
@@ -107,18 +106,6 @@ for xyz in points:
         bbox[3] = xyz[1]
     #bbox[5] = max(bbox[5], xyz[2]) # max z
 
-#making a cube of the points around the min and max, each of these points are a vertex
-#not sure why, look at later
-#not using bbox_corner anywhere
-#bbox_corners = numpy.array([
-#    [bbox[0],bbox[2], bbox[4]],
-#    [bbox[0],bbox[2], bbox[5]],
-#    [bbox[0],bbox[3], bbox[5]],
-#    [bbox[0],bbox[3], bbox[4]],
-#    [bbox[1],bbox[3], bbox[4]],
-#    [bbox[1],bbox[2], bbox[4]],
-#    [bbox[1],bbox[2], bbox[5]],
-#    [bbox[1],bbox[3], bbox[5]]]);
 
 #finds coordinates of the center in the cube
 bbox_center = numpy.array([(bbox[0]+bbox[1])/2, (bbox[2]+bbox[3])/2, (bbox[4]+bbox[5])/2]);
@@ -134,30 +121,63 @@ N_ITERATIONS = 1000
 
 
 # write code where you store all the points not in the pothole.
+
+
+print(points)
+input("Break")
+
+road_points = numpy.empty((rows, columns))
+counter = 0
+for point in points:
+    if point[2] < 790 and point[2] > 766:
+        # paste the road pixel in to the new array
+        road_points[counter, 0] = point[0]
+        road_points[counter, 1] = point[1]
+        road_points[counter, 2] = point[2]
+        counter = counter + 1
+
+
+
+
+# this part needs correction
+road_points_2 = numpy.empty((counter + 1, 3))
+
+counter_2 = 0
+for road_point in road_points:
+    road_points_2[counter_2, 0] = road_point[0]
+    road_points_2[counter_2, 1] = road_point[1]
+    road_points_2[counter_2, 2] = road_point[2]
+    counter_2 = counter_2 + 1
+
+print(counter)
+input("break")
+
+print(road_points_2)
+input("break")
+
+        
 # write code that choose, say 1000, points from the set above . IMPORTANT: These points should be chosen RANDOMLY(not the first 1000)
 # give this data instead of "points" in the function leastSqCoeff
 
 (a,b,c) = leastSqCoeff(THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox)
 
-# plot ransac
-#fig = pyplot.figure()
-#ax = fig.add_subplot(111, projection='3d')
-#ax.scatter(points[ind][:,0], points[ind][:,1], points[ind][:,2], c='b', marker='o', label='Inlier data')
-#fig.savefig("dorg_130ransacInliers") #save the image
-#ax.scatter(points[outliers][:,0], points[outliers][:,1], points[outliers][:,2], c='b', marker='o', label='Outlier data')
-#pyplot.show()
-#fig.savefig("dorg_19ransacOutliers") #save the image
-
 # Linear plane eq aX + bY + cZ = 1 (trial 1)
 Z = (1 - a*X - b*Y)/c 
+
+
 # Linear plane eq trial 2 Z = ax + by + c
 #Z = a*X + b*Y + c 
-fig = plotFigure(X,Y,Z,z,True)
-fig.savefig("dorg_26planetest")
+#fig = plotFigure(X,Y,Z,z,True)
+#fig.savefig("dorg_26planetest") #save as png
 
 # Depth image subtracted from fitted plane
 #depthdiff = Z  - z
 #This one works
+print(Z)
+input("break")
+
+print(z)
+input("break")
 depthdiff = z - Z 
 # Set to 0 depth diff greater than 5mm
 depthdiff[depthdiff > 5] = 0
