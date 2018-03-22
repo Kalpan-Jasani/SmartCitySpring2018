@@ -161,34 +161,26 @@ Z = (1 - a*X - b*Y)/c
 #depthdiff = Z  - z
 #This one works
 depthdiff = z - Z 
-
-
-
-# Set to 0 depth diff lesser than 5mm
-for i in range(depthdiff.size - 1):
-    for j in range(depthdiff[i].size - 1):
-        if depthdiff[i, j] < 5.0 and depthdiff[i, j] > -5.0:
-            depthdiff[i, j] = 0
-   
-    
-print(depthdiff)
-input("break")
-#depthdiff[depthdiff > 0] = 0
+# Set to 0 depth diff greater than 5mm
+depthdiff[depthdiff > 5] = 0
+depthdiff[depthdiff > 0] = 0
 #this one works
 #mask = (depthdiff > 0) & (depthdiff < 25)
 #mask = (depthdiff > 0) and (depthdiff < 5)
 #depthdiff[mask] = 0
 
 # Plot test image of both the plane and the subtracted depth data
-#fig = plotFigure(X,Y,Z,depthdiff,False)
-#fig.savefig("dorg26plots")
+fig = plotFigure(X,Y,Z,depthdiff,False)
+fig.savefig("dorg26plots")
 
+#fig.savefig("dorg26plots")
 pyplot.show()
 # trial 2 because 5mm seems to still have a lot of points above the plane
 # this time set to 2mm
 #depthdiff[depthdiff > 5] = 0
 #depthdiff[depth > 0] = 0
 #depthdiff[depthdiff > -5] = 0
+
 
 
 #<<<<<<Need to comment everything below>>>>>>>
