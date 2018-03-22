@@ -123,9 +123,6 @@ N_ITERATIONS = 1000
 # write code where you store all the points not in the pothole.
 
 
-print(points)
-input("Break")
-
 road_points = numpy.empty((rows, columns))
 counter = 0
 for point in points:
@@ -137,29 +134,16 @@ for point in points:
         counter = counter + 1
 
 
-
+#counter now contains the number of the picked pixels
 
 # this part needs correction
-road_points_2 = numpy.empty((counter + 1, 3))
+road_points_2 = road_points[:counter,]  
 
-counter_2 = 0
-for road_point in road_points:
-    road_points_2[counter_2, 0] = road_point[0]
-    road_points_2[counter_2, 1] = road_point[1]
-    road_points_2[counter_2, 2] = road_point[2]
-    counter_2 = counter_2 + 1
-
-print(counter)
-input("break")
-
-print(road_points_2)
-input("break")
-
-        
+     
 # write code that choose, say 1000, points from the set above . IMPORTANT: These points should be chosen RANDOMLY(not the first 1000)
 # give this data instead of "points" in the function leastSqCoeff
 
-(a,b,c) = leastSqCoeff(THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox)
+(a,b,c) = leastSqCoeff(THRESHOLD, TOLERANCE, N_ITERATIONS, road_points_2, bbox)
 
 # Linear plane eq aX + bY + cZ = 1 (trial 1)
 Z = (1 - a*X - b*Y)/c 
@@ -167,31 +151,38 @@ Z = (1 - a*X - b*Y)/c
 
 # Linear plane eq trial 2 Z = ax + by + c
 #Z = a*X + b*Y + c 
+
+
+
 #fig = plotFigure(X,Y,Z,z,True)
 #fig.savefig("dorg_26planetest") #save as png
 
 # Depth image subtracted from fitted plane
 #depthdiff = Z  - z
 #This one works
-print(Z)
-input("break")
-
-print(z)
-input("break")
 depthdiff = z - Z 
-# Set to 0 depth diff greater than 5mm
-depthdiff[depthdiff > 5] = 0
-depthdiff[depthdiff > 0] = 0
+
+
+
+# Set to 0 depth diff lesser than 5mm
+for i in range(depthdiff.size - 1):
+    for j in range(depthdiff[i].size - 1):
+        if depthdiff[i, j] < 5.0 and depthdiff[i, j] > -5.0:
+            depthdiff[i, j] = 0
+   
+    
+print(depthdiff)
+input("break")
+#depthdiff[depthdiff > 0] = 0
 #this one works
 #mask = (depthdiff > 0) & (depthdiff < 25)
 #mask = (depthdiff > 0) and (depthdiff < 5)
 #depthdiff[mask] = 0
 
 # Plot test image of both the plane and the subtracted depth data
-fig = plotFigure(X,Y,Z,depthdiff,False)
-fig.savefig("dorg26plots")
-
+#fig = plotFigure(X,Y,Z,depthdiff,False)
 #fig.savefig("dorg26plots")
+
 pyplot.show()
 # trial 2 because 5mm seems to still have a lot of points above the plane
 # this time set to 2mm
