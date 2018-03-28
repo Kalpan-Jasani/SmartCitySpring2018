@@ -19,30 +19,35 @@ def leastSqCoeff (THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox):
     #TOLERANCE = 0.78 #5 #removing hard coding
     # ratio of inliers
     #THRESHOLD = 0.05 #removing hard coding
+    
+    
     N_ITERATIONS = 1000
     iterations = 0
     solved = 0
     while iterations < N_ITERATIONS and solved == 0:
         iterations += 1
-        #max_error = -float('inf')
-        #max_index = -1
-        # randomly pick three non-colinear points
+        
         CP = numpy.array([0,0,0])
         while CP[0] == 0 and CP[1] == 0 and CP[2] == 0:
             
-            #A stores x coord, B stores y coord and C stores depth (z coord)
+
             [A,B,C] = points[random.sample(range(len(points)), 3)]
+        
+            
             
             # make sure they are non-collinear
-            CP = numpy.cross(A-B, B-C)
             
+            #this line gets the normal vector
+            CP = numpy.cross(A-B, B-C)
+        
             # calculate plane coefficients
             abc = numpy.dot(numpy.linalg.inv(numpy.array([A,B,C])), numpy.ones([3,1]))
             
             # get distances from the plane
             d = math.sqrt(abc[0]*abc[0]+abc[1]*abc[1]+abc[2]*abc[2])
-            
             dist = abs((numpy.dot(points, abc) - 1)/d)
+            
+  
             
             #print max(dist),min(dist)
             ind = numpy.where(dist < TOLERANCE)[0]

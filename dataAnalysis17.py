@@ -149,7 +149,7 @@ road_points_2 = road_points[:counter,]
 Z = (1 - a*X - b*Y)/c 
 
 
-# Linear plane eq trial 2 Z = ax + by + c
+# Linear plane eq trial 2   Z = ax + by + c
 #Z = a*X + b*Y + c 
 
 
