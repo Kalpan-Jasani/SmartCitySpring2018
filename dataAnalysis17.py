@@ -26,7 +26,7 @@ z = numpy.loadtxt("data.txt", delimiter="\t") #load into 2D array
 
 # to remove the edges
 #from row 7 to end - 7 and from column 7 to end - 7
-z = z[7:-7, 7:-7]
+z = z[10:-10, 10:-10]
 #z = z[:,420:-115]
 
 # No hardcoding
@@ -48,8 +48,8 @@ Y = numpy.arange(x) #gives numbers from 0 to x(stored in Y)
 X, Y = numpy.meshgrid(X, Y) #makes 2D array for plotting DONT WORRY ABOUT X
 
 # remove next comments to show figure 1
-#fig = plotFigure(X,Y,z,z,True) #plot original figure(before adjusting)
-#fig.savefig("raw") #save the image
+fig = plotFigure(X,Y,z,z,True) #plot original figure(before adjusting)
+fig.savefig("raw") #save the image
 
 
 
@@ -145,8 +145,8 @@ road_points_2 = road_points[:counter,]
 Z = (1 - a*X - b*Y)/c 
 
 
-#fig = plotFigure(X,Y,Z,z,True)
-#fig.savefig("plane_test") #save as png
+fig = plotFigure(X,Y,Z,z,True)
+fig.savefig("plane_test") #save as png
 
 
 # Depth image subtracted from fitted plane
