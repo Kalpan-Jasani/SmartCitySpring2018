@@ -22,7 +22,7 @@ from plotFigure import plotFigure
 #z = numpy.loadtxt("24in_RealCrack1.txt", delimiter=" ")
 #z = numpy.loadtxt("frame4190.txt", delimiter=" ")
 
-z = numpy.loadtxt("d_org130.txt", delimiter="\t") #load into 2D array
+z = numpy.loadtxt("data.txt", delimiter="\t") #load into 2D array
 
 # to remove the edges
 #from row 7 to end - 7 and from column 7 to end - 7
@@ -47,9 +47,10 @@ Y = numpy.arange(x) #gives numbers from 0 to x(stored in Y)
 #z[z<-30]=0
 X, Y = numpy.meshgrid(X, Y) #makes 2D array for plotting DONT WORRY ABOUT X
 
-# remove next line to show figure 1
+# remove next comments to show figure 1
 #fig = plotFigure(X,Y,z,z,True) #plot original figure(before adjusting)
-#fig.savefig("dorg130") #save the image
+#fig.savefig("raw") #save the image
+
 
 
 
@@ -71,15 +72,7 @@ for width in range(maxwidth):
 
 
 
-# prepare the B dataset for trial 2
-             
-# run ransac on dataset B (1st trial)
-#model_robust, inliers = ransac(B, LineModelND, min_samples=3, residual_threshold=1, max_trials=1000)
-# get the inverse of inliers
-#outliers = inliers == False
-            
-#point_list = []
-# makes 1D array of 6 elements alternating infinity and negative infinity
+
 bbox = numpy.array([float('Inf'),-float('Inf'),float('Inf'),-float('Inf'),float('Inf'),-float('Inf')])
 
 #clones array B
@@ -111,9 +104,13 @@ for xyz in points:
 bbox_center = numpy.array([(bbox[0]+bbox[1])/2, (bbox[2]+bbox[3])/2, (bbox[4]+bbox[5])/2]);
 
 #hardcodes the tolerance and threshold 
-TOLERANCE = 0.78 # standard distance of the "level" of the road. 0.78 metres.
+TOLERANCE = 1
+
+#TOLERANCE is distance you allow for one point to be away from the fitted plane
 # ratio of inliers
-THRESHOLD = 0.05
+
+# threshold should be high. That is the ratio of inliers you want in your ransac. For a given test, you will need to have this or higher ratio to count as valid candidate set of ponts
+THRESHOLD = 0.2
 N_ITERATIONS = 1000
 # Finds least squares solution coeffiecients for ax+by+cz=1
 
@@ -136,7 +133,6 @@ for point in points:
 
 #counter now contains the number of the picked pixels
 
-# this part needs correction
 road_points_2 = road_points[:counter,]  
 
      
@@ -145,25 +141,20 @@ road_points_2 = road_points[:counter,]
 
 (a,b,c) = leastSqCoeff(THRESHOLD, TOLERANCE, N_ITERATIONS, road_points_2, bbox)
 
-# Linear plane eq aX + bY + cZ = 1 (trial 1)
+# Linear plane eq aX + bY + cZ = 1
 Z = (1 - a*X - b*Y)/c 
 
 
-# Linear plane eq trial 2   Z = ax + by + c
-#Z = a*X + b*Y + c 
-
-
-
 #fig = plotFigure(X,Y,Z,z,True)
-#fig.savefig("dorg_26planetest") #save as png
+#fig.savefig("plane_test") #save as png
+
 
 # Depth image subtracted from fitted plane
 #depthdiff = Z  - z
 #This one works
-depthdiff = z - Z 
+depthdiff = abs(z - Z)
 # Set to 0 depth diff greater than 5mm
-depthdiff[depthdiff > 5] = 0
-depthdiff[depthdiff > 0] = 0
+depthdiff[depthdiff < 5] = 0
 #this one works
 #mask = (depthdiff > 0) & (depthdiff < 25)
 #mask = (depthdiff > 0) and (depthdiff < 5)
@@ -171,10 +162,9 @@ depthdiff[depthdiff > 0] = 0
 
 # Plot test image of both the plane and the subtracted depth data
 fig = plotFigure(X,Y,Z,depthdiff,False)
-fig.savefig("dorg26plots")
-
-#fig.savefig("dorg26plots")
+fig.savefig("after_plane_fitting")
 pyplot.show()
+
 # trial 2 because 5mm seems to still have a lot of points above the plane
 # this time set to 2mm
 #depthdiff[depthdiff > 5] = 0
@@ -187,7 +177,7 @@ pyplot.show()
 
 
 #Find the max depth in the array 
-deepest = min(depthdiff.flatten())
+deepest = max(depthdiff.flatten())
 
 #divide by deepest - normalized
 test = depthdiff/ deepest # why are the values not 0 to 1?
