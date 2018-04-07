@@ -47,10 +47,15 @@ Y = numpy.arange(x) #gives numbers from 0 to x(stored in Y)
 #z[z<-30]=0
 X, Y = numpy.meshgrid(X, Y) #makes 2D array for plotting DONT WORRY ABOUT X
 
+
+print("kalpan")
+
+
 # remove next comments to show figure 1
 fig = plotFigure(X,Y,z,z,True) #plot original figure(before adjusting)
 fig.savefig("raw") #save the image
 
+pyplot.close()
 
 
 
@@ -120,6 +125,7 @@ N_ITERATIONS = 1000
 # write code where you store all the points not in the pothole.
 
 
+
 road_points = numpy.empty((rows, columns))
 counter = 0
 for point in points:
@@ -147,6 +153,8 @@ Z = (1 - a*X - b*Y)/c
 
 fig = plotFigure(X,Y,Z,z,True)
 fig.savefig("plane_test") #save as png
+pyplot.close()
+
 
 
 # Depth image subtracted from fitted plane
@@ -163,7 +171,11 @@ depthdiff[depthdiff < 5] = 0
 # Plot test image of both the plane and the subtracted depth data
 fig = plotFigure(X,Y,Z,depthdiff,False)
 fig.savefig("after_plane_fitting")
-pyplot.show()
+
+pyplot.close()
+
+#not plotting for debugging
+#pyplot.show()
 
 # trial 2 because 5mm seems to still have a lot of points above the plane
 # this time set to 2mm
@@ -184,7 +196,9 @@ test = depthdiff/ deepest # why are the values not 0 to 1?
 
 #show grayscale img
 pyplot.imshow(test)
-pyplot.show()
+
+#temporary commenting out below line
+#pyplot.show()
 #pyplot.imsave("depthdiff19.png", test)
 
 #Need to adjust what i change to 0 because currently it only shows the left part
@@ -219,6 +233,8 @@ pyplot.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=Non
 #save the image
 pyplot.axis('off')
 pyplot.savefig('test.png', bbox_inches='tight', pad_inches=0)
+
+pyplot.close()
 
 #read in the image
 img = cv2.imread('test.png', 0)
