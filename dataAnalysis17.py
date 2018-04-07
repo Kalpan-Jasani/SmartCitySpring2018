@@ -22,7 +22,7 @@ from plotFigure import plotFigure
 #z = numpy.loadtxt("24in_RealCrack1.txt", delimiter=" ")
 #z = numpy.loadtxt("frame4190.txt", delimiter=" ")
 
-z = numpy.loadtxt("data.txt", delimiter="\t") #load into 2D array
+z = numpy.loadtxt("data_3.txt", delimiter="\t") #load into 2D array
 
 # to remove the edges
 #from row 7 to end - 7 and from column 7 to end - 7
@@ -104,7 +104,6 @@ for xyz in points:
         bbox[3] = xyz[1]
     #bbox[5] = max(bbox[5], xyz[2]) # max z
 
-
 #finds coordinates of the center in the cube
 bbox_center = numpy.array([(bbox[0]+bbox[1])/2, (bbox[2]+bbox[3])/2, (bbox[4]+bbox[5])/2]);
 
@@ -116,7 +115,7 @@ TOLERANCE = 1
 
 # threshold should be high. That is the ratio of inliers you want in your ransac. For a given test, you will need to have this or higher ratio to count as valid candidate set of ponts
 THRESHOLD = 0.2
-N_ITERATIONS = 1000
+N_ITERATIONS = 500
 # Finds least squares solution coeffiecients for ax+by+cz=1
 
 #this code is faulty becaue it picks points randomly from the points array. 
@@ -147,6 +146,7 @@ road_points_2 = road_points[:counter,]
 
 (a,b,c) = leastSqCoeff(THRESHOLD, TOLERANCE, N_ITERATIONS, road_points_2, bbox)
 
+
 # Linear plane eq aX + bY + cZ = 1
 Z = (1 - a*X - b*Y)/c 
 
@@ -162,7 +162,7 @@ pyplot.close()
 #This one works
 depthdiff = abs(z - Z)
 # Set to 0 depth diff greater than 5mm
-depthdiff[depthdiff < 5] = 0
+depthdiff[depthdiff < 15] = 0
 #this one works
 #mask = (depthdiff > 0) & (depthdiff < 25)
 #mask = (depthdiff > 0) and (depthdiff < 5)
