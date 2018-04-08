@@ -22,7 +22,7 @@ from plotFigure import plotFigure
 #z = numpy.loadtxt("24in_RealCrack1.txt", delimiter=" ")
 #z = numpy.loadtxt("frame4190.txt", delimiter=" ")
 
-z = numpy.loadtxt("data_3.txt", delimiter="\t") #load into 2D array
+z = numpy.loadtxt("data.txt", delimiter="\t") #load into 2D array
 
 # to remove the edges
 #from row 7 to end - 7 and from column 7 to end - 7
@@ -47,16 +47,11 @@ Y = numpy.arange(x) #gives numbers from 0 to x(stored in Y)
 #z[z<-30]=0
 X, Y = numpy.meshgrid(X, Y) #makes 2D array for plotting DONT WORRY ABOUT X
 
-
-print("kalpan")
-
-
 # remove next comments to show figure 1
 fig = plotFigure(X,Y,z,z,True) #plot original figure(before adjusting)
 fig.savefig("raw") #save the image
 
 pyplot.close()
-
 
 
 
@@ -115,7 +110,7 @@ TOLERANCE = 1
 
 # threshold should be high. That is the ratio of inliers you want in your ransac. For a given test, you will need to have this or higher ratio to count as valid candidate set of ponts
 THRESHOLD = 0.2
-N_ITERATIONS = 500
+N_ITERATIONS = 1000
 # Finds least squares solution coeffiecients for ax+by+cz=1
 
 #this code is faulty becaue it picks points randomly from the points array. 
@@ -161,12 +156,9 @@ pyplot.close()
 #depthdiff = Z  - z
 #This one works
 depthdiff = abs(z - Z)
-# Set to 0 depth diff greater than 5mm
-depthdiff[depthdiff < 15] = 0
-#this one works
-#mask = (depthdiff > 0) & (depthdiff < 25)
-#mask = (depthdiff > 0) and (depthdiff < 5)
-#depthdiff[mask] = 0
+
+# Set to 0 depth diff less than 15mm
+depthdiff[depthdiff < 5] = 0
 
 # Plot test image of both the plane and the subtracted depth data
 fig = plotFigure(X,Y,Z,depthdiff,False)
@@ -177,11 +169,6 @@ pyplot.close()
 #not plotting for debugging
 #pyplot.show()
 
-# trial 2 because 5mm seems to still have a lot of points above the plane
-# this time set to 2mm
-#depthdiff[depthdiff > 5] = 0
-#depthdiff[depth > 0] = 0
-#depthdiff[depthdiff > -5] = 0
 
 
 
@@ -194,29 +181,31 @@ deepest = max(depthdiff.flatten())
 #divide by deepest - normalized
 test = depthdiff/ deepest # why are the values not 0 to 1?
 
-#show grayscale img
+#show grayscale img. But, not on the GUI, it "shows" on the axes (the canvas). The canvas isn't showed to GUI (at this stage)
 pyplot.imshow(test)
 
-#temporary commenting out below line
+#not plotting for debugginh
 #pyplot.show()
-#pyplot.imsave("depthdiff19.png", test)
+
+#closing so pyplot.show in next graph doesn't open this too
+pyplot.close()
+
+pyplot.imsave("colored_2d.png", test)
 
 #Need to adjust what i change to 0 because currently it only shows the left part
 from skimage import filters
+
 otsuimg = filters.threshold_otsu(test)
 pyplot.imshow(test > otsuimg, cmap='gray', interpolation='nearest')
-#pyplot.show()
+
+#not displaying for getting faster output
+# pyplot.show()
+
 xlim, ylim = pyplot.xlim(), pyplot.ylim()
 pyplot.plot(x,y,"o")
 pyplot.xlim(xlim)
 pyplot.ylim(ylim)
 pyplot.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
-#pyplot.savefig('test')
-#pyplot.show()
-#pyplot.imsave("test.png", test > otsuimg, cmap='gray')
-
-
-#Values positive negative problem?
 
 #calculate percentage and occurrences of number of times it exceeds the threshold
 #count = 0

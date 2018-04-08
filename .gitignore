@@ -3,3 +3,5 @@ __pycache__
 .DS_STORE
 *.jpeg
 data.txt
+output_files/
+executor.sh
