@@ -9,31 +9,31 @@ import random
 import math
 import time 
 
-from threshold import threshold
+from leastSqCoeff import leastSqCoeff
 from severity import severity
 #from setFigure import setFigure
+from plotFigure import plotFigure
 
-#start_time = time.time()
 
-fig = pyplot.figure()
-ax = fig.gca(projection='3d')
-
+#something new
 # generate x, y and z coordinates
 #X = numpy.arange(0, 620) #512
 #Y = numpy.arange(0, 460) #424
 #z = numpy.loadtxt("24in_RealCrack1.txt", delimiter=" ")
 #z = numpy.loadtxt("frame4190.txt", delimiter=" ")
 
-z = numpy.loadtxt("d_org130.txt", delimiter="\t")
+z = numpy.loadtxt("data.txt", delimiter="\t") #load into 2D array
 
 # to remove the edges
-#z = z[7:-7, 7:-7]
+#from row 7 to end - 7 and from column 7 to end - 7
+z = z[10:-10, 10:-10]
 #z = z[:,420:-115]
 
 # No hardcoding
-x,y = z.shape
-X = numpy.arange(0, y)
-Y = numpy.arange(0, x)
+x,y = z.shape  #gives dimensions
+
+X = numpy.arange(y) #gives numbers from 0 to y(stored in X)
+Y = numpy.arange(x) #gives numbers from 0 to x(stored in Y)
 
 # to subtract height from ground
 #z = z - 609.6
@@ -43,160 +43,169 @@ Y = numpy.arange(0, x)
 #z = z - 61
 #z = z - 62
 #z= z - 12
-# plot 3d graph x, y and depth data
+#plot 3d graph x, y and depth data
 #z[z<-30]=0
-X, Y = numpy.meshgrid(X, Y)
-surf = ax.plot_surface(X, Y, z, cmap=cm.coolwarm, linewidth = 0, antialiased=False)
-fig.colorbar(surf, shrink=0.5, aspect=5)
-pyplot.xlabel('X pixels')
-pyplot.ylabel('Y pixels')
-ax.set_zlabel('Z: Depth values(mm)')
-#pyplot.show()
-fig.savefig("dorg130") #save the image
-#numpy.savetxt("testremove.txt", z, delimiter=" ", fmt = '%.4f')
-# combine x, y and z into a 3 column matrix
-#rows = 285200
-rows = x * y
+X, Y = numpy.meshgrid(X, Y) #makes 2D array for plotting DONT WORRY ABOUT X
+
+# remove next comments to show figure 1
+fig = plotFigure(X,Y,z,z,True) #plot original figure(before adjusting)
+fig.savefig("raw") #save the image
+
+pyplot.close()
+
+
+
+#the next few line makes 3D plot (stored in B finally) of the x,y values and their corresponding depth
+rows = x * y #this stores the number of pixels.. each pixel's data is stored in B
 columns = 3
+
 maxlength = y
-#maxlength = 620
 maxwidth = x
-#maxwidth = 460
-B = numpy.empty((rows, columns))
+B = numpy.empty((rows, columns)) #initializes array B with random crap in it of dimensions (rows, columns)
 row = 0
-for width in range(maxwidth):
-	for length in range(maxlength):
-		B[row, 0] = width
-		B[row, 1] = length
-		B[row, 2] = z[width, length]
-		row = row + 1
+for width in range(maxwidth): 
+    for length in range(maxlength):
+    		B[row, 0] = width
+    		B[row, 1] = length
+    		B[row, 2] = z[width, length] #matches each x and y with corresponding depth
+    		row = row + 1
 
-# run ransac on dataset B (1st trial)
-#model_robust, inliers = ransac(B, LineModelND, min_samples=3, residual_threshold=1, max_trials=1000)
-# get the inverse of inliers
-#outliers = inliers == False
 
-#(X,Y,z,B) = setFigure
 
-# prepare the B dataset for trial 2
-point_list = []
+
 bbox = numpy.array([float('Inf'),-float('Inf'),float('Inf'),-float('Inf'),float('Inf'),-float('Inf')])
 
+#clones array B
 points = numpy.array(B)
 
 
+# xyz acquires the different pixels/points 
+
+# find the pixel that is the minimum and the pixel that is the maximum
+
 for xyz in points:
-    bbox[0] = min(bbox[0], xyz[0]) # min x
-    bbox[1] = max(bbox[1], xyz[0]) # max y
-    bbox[2] = min(bbox[2], xyz[1]) # min x
-    bbox[3] = max(bbox[3], xyz[1]) # max y
-    bbox[4] = min(bbox[4], xyz[2]) # min z
-    bbox[5] = max(bbox[5], xyz[2]) # max z
+    #bbox[0] = min(bbox[0], xyz[0]) # min x
+    #bbox[1] = max(bbox[1], xyz[0]) # max x
+    #bbox[2] = min(bbox[2], xyz[1]) # min y
+    #bbox[3] = max(bbox[3], xyz[1]) # max y
+    if min(bbox[4], xyz[2]) == xyz[2]:
+        bbox[4] = xyz[2]  # min z
+        bbox[0] = xyz[0]
+        bbox[2] = xyz[1]
+        
+    if max(bbox[5], xyz[2]) == xyz[2]:
+        bbox[5] = xyz[2]  # min z
+        bbox[1] = xyz[0]
+        bbox[3] = xyz[1]
+    #bbox[5] = max(bbox[5], xyz[2]) # max z
 
-bbox_corners = numpy.array([
-    [bbox[0],bbox[2], bbox[4]],
-    [bbox[0],bbox[2], bbox[5]],
-    [bbox[0],bbox[3], bbox[5]],
-    [bbox[0],bbox[3], bbox[4]],
-    [bbox[1],bbox[3], bbox[4]],
-    [bbox[1],bbox[2], bbox[4]],
-    [bbox[1],bbox[2], bbox[5]],
-    [bbox[1],bbox[3], bbox[5]]]);
-
+#finds coordinates of the center in the cube
 bbox_center = numpy.array([(bbox[0]+bbox[1])/2, (bbox[2]+bbox[3])/2, (bbox[4]+bbox[5])/2]);
 
-#run ransac on dataset B (2nd trial)
-#code taken from https://github.com/minghuam/point-visualizer/blob/master/point_visualizer.py
-#http://www.cse.yorku.ca/~kosta/CompVis_Notes/ransac.pdf
-# tolerance for distance, e.g. 0.0027m for kinect
+#hardcodes the tolerance and threshold 
+TOLERANCE = 1
 
-TOLERANCE = 0.78 #5
+#TOLERANCE is distance you allow for one point to be away from the fitted plane
 # ratio of inliers
-THRESHOLD = 0.05
+
+# threshold should be high. That is the ratio of inliers you want in your ransac. For a given test, you will need to have this or higher ratio to count as valid candidate set of ponts
+THRESHOLD = 0.2
 N_ITERATIONS = 1000
 # Finds least squares solution coeffiecients for ax+by+cz=1
-(a,b,c) = threshold(THRESHOLD, TOLERANCE, N_ITERATIONS, points, bbox)
 
-# plot ransac
-#fig = pyplot.figure()
-#ax = fig.add_subplot(111, projection='3d')
-#ax.scatter(points[ind][:,0], points[ind][:,1], points[ind][:,2], c='b', marker='o', label='Inlier data')
-#fig.savefig("dorg_130ransacInliers") #save the image
-#ax.scatter(points[outliers][:,0], points[outliers][:,1], points[outliers][:,2], c='b', marker='o', label='Outlier data')
-#pyplot.show()
-#fig.savefig("dorg_19ransacOutliers") #save the image
+#this code is faulty becaue it picks points randomly from the points array. 
 
-# Linear plane eq aX + bY + cZ = 1 (trial 1)
+
+# write code where you store all the points not in the pothole.
+
+
+
+road_points = numpy.empty((rows, columns))
+counter = 0
+for point in points:
+    if point[2] < 790 and point[2] > 766:
+        # paste the road pixel in to the new array
+        road_points[counter, 0] = point[0]
+        road_points[counter, 1] = point[1]
+        road_points[counter, 2] = point[2]
+        counter = counter + 1
+
+
+#counter now contains the number of the picked pixels
+
+road_points_2 = road_points[:counter,]  
+
+     
+# write code that choose, say 1000, points from the set above . IMPORTANT: These points should be chosen RANDOMLY(not the first 1000)
+# give this data instead of "points" in the function leastSqCoeff
+
+(a,b,c) = leastSqCoeff(THRESHOLD, TOLERANCE, N_ITERATIONS, road_points_2, bbox)
+
+
+# Linear plane eq aX + bY + cZ = 1
 Z = (1 - a*X - b*Y)/c 
-# Linear plane eq trial 2 Z = ax + by + c
-#Z = a*X + b*Y + c 
-fig = pyplot.figure()
-ax = fig.gca(projection='3d')
-ax.plot_surface(X,Y,Z,rstride=1, cstride=1, alpha=0.2)
-surf = ax.plot_surface(X,Y,z, cmap=cm.coolwarm, linewidth = 0, antialiased=False)
-fig.colorbar(surf, shrink=0.5, aspect=5)
-#pyplot.show()
-pyplot.xlabel('X pixels')
-pyplot.ylabel('Y pixels')
-ax.set_zlabel('Z: Depth values(mm)')
-fig.savefig("dorg_26planetest")
+
+
+fig = plotFigure(X,Y,Z,z,True)
+fig.savefig("plane_test") #save as png
+pyplot.close()
+
+
 
 # Depth image subtracted from fitted plane
 #depthdiff = Z  - z
 #This one works
-depthdiff = z - Z 
-# Set to 0 depth diff greater than 5mm
-depthdiff[depthdiff > 5] = 0
-depthdiff[depthdiff > 0] = 0
-#this one works
-#mask = (depthdiff > 0) & (depthdiff < 25)
-#mask = (depthdiff > 0) and (depthdiff < 5)
-#depthdiff[mask] = 0
+depthdiff = abs(z - Z)
+
+# Set to 0 depth diff less than 15mm
+depthdiff[depthdiff < 5] = 0
 
 # Plot test image of both the plane and the subtracted depth data
-fig = pyplot.figure()
-ax = fig.gca(projection='3d')
-surf = ax.plot_surface(X,Y,depthdiff, cmap=cm.coolwarm, linewidth = 0, antialiased=False)
-#ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.2)
-fig.colorbar(surf, shrink=0.5, aspect=5)
+fig = plotFigure(X,Y,Z,depthdiff,False)
+fig.savefig("after_plane_fitting")
+
+pyplot.close()
+
+#not plotting for debugging
 #pyplot.show()
-pyplot.xlabel('X pixels')
-pyplot.ylabel('Y pixels')
-ax.set_zlabel('Z: Depth values(mm)')
-fig.savefig("dorg26plots")
-#fig.savefig("dorg26plots")
-pyplot.show()
-# trial 2 because 5mm seems to still have a lot of points above the plane
-# this time set to 2mm
-#depthdiff[depthdiff > 5] = 0
-#depthdiff[depth > 0] = 0
-#depthdiff[depthdiff > -5] = 0
+
+
+
+
+#<<<<<<Need to comment everything below>>>>>>>
+
 
 #Find the max depth in the array 
-deepest = min(depthdiff.flatten())
+deepest = max(depthdiff.flatten())
+
 #divide by deepest - normalized
 test = depthdiff/ deepest # why are the values not 0 to 1?
-#show grayscale img
+
+#show grayscale img. But, not on the GUI, it "shows" on the axes (the canvas). The canvas isn't showed to GUI (at this stage)
 pyplot.imshow(test)
-pyplot.show()
-#pyplot.imsave("depthdiff19.png", test)
+
+#not plotting for debugginh
+#pyplot.show()
+
+#closing so pyplot.show in next graph doesn't open this too
+pyplot.close()
+
+pyplot.imsave("colored_2d.png", test)
 
 #Need to adjust what i change to 0 because currently it only shows the left part
 from skimage import filters
+
 otsuimg = filters.threshold_otsu(test)
 pyplot.imshow(test > otsuimg, cmap='gray', interpolation='nearest')
-#pyplot.show()
+
+#not displaying for getting faster output
+# pyplot.show()
+
 xlim, ylim = pyplot.xlim(), pyplot.ylim()
 pyplot.plot(x,y,"o")
 pyplot.xlim(xlim)
 pyplot.ylim(ylim)
 pyplot.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
-#pyplot.savefig('test')
-#pyplot.show()
-#pyplot.imsave("test.png", test > otsuimg, cmap='gray')
-
-
-#Values positive negative problem?
 
 #calculate percentage and occurrences of number of times it exceeds the threshold
 #count = 0
@@ -213,6 +222,8 @@ pyplot.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=Non
 #save the image
 pyplot.axis('off')
 pyplot.savefig('test.png', bbox_inches='tight', pad_inches=0)
+
+pyplot.close()
 
 #read in the image
 img = cv2.imread('test.png', 0)
@@ -266,30 +277,6 @@ avgDiameter = (widthdiameter+lengthdiameter)/2
 
 #if else statements for severity level using @avgDiameter and @deepest
 deepest = abs(deepest)
-'''
-if deepest <= 25: 
-    if avgDiameter <= 200:
-        print("L")
-    elif avgDiameter > 200 and avgDiameter <= 450:
-        print("L")
-    elif avgDiameter > 450:
-        print("M")
-elif deepest > 25 and deepest <= 50:
-    if avgDiameter <= 200:
-        print("L")
-    elif avgDiameter > 200 and avgDiameter <= 450:
-        print("M")
-    elif avgDiameter > 450:
-        print("H")
-elif deepest > 50:
-    if avgDiameter <= 200:
-        print("M")
-    elif avgDiameter > 200 and avgDiameter <= 450:
-        print("M")
-    elif avgDiameter > 450:
-        print("H")
-elif deepest < 13 and avgDiameter < 100:
-    print("Not a pothole")
-'''
+#severity function is in another file, it prints L,M,H for low, medium, and high severity
 severity(deepest, avgDiameter)
 #print(time.time() - start_time)
